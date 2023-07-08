@@ -1,16 +1,18 @@
-﻿using AutoMapper;
+﻿using Amazon.Runtime.Internal.Util;
+using AutoMapper;
 using FreeCourse.Services.Catalog.Dtos;
 using FreeCourse.Services.Catalog.Models;
 using FreeCourse.Services.Catalog.Settings;
 using FreeCourse.Shared.Dtos;
 using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace FreeCourse.Services.Catalog.Services
 {
-    internal class CourseService
+    internal class CourseService:ICourseService
     {
         private readonly IMongoCollection<Course> _courseCollection;
         private readonly IMongoCollection<Category> _categoryCollection;
@@ -42,11 +44,7 @@ namespace FreeCourse.Services.Catalog.Services
 
             return Response<List<CourseDto>>.Success(_mapper.Map<List<CourseDto>>(Courses), 200);
         }
-        public async Task<Response<CategoryDto>> CreateAsync(Category category)
-        {
-            await _categoryCollection.InsertOneAsync(category);
-            return Response<CategoryDto>.Success(_mapper.Map<CategoryDto>(category), 200);
-        }
+      
 
         public async Task<Response<CourseDto>> GetByIdAsync(string id)
         {
@@ -68,6 +66,42 @@ namespace FreeCourse.Services.Catalog.Services
             }
             courses.Category = await _categoryCollection.Find<Category>(x => x.Id == courses.Id).FirstAsync();
             return Response<CourseDto>.Success(_mapper.Map<CourseDto>(courses), 200);
+        }
+        public async Task<Response<CourseDto>> CreateAsync(CourseCreateDto dto)
+        {
+            var newcourse = _mapper.Map<Course>(dto);
+            newcourse.Created = DateTime.Now;
+
+            await _courseCollection.InsertOneAsync(newcourse);
+            return Response<CourseDto>.Success(_mapper.Map<CourseDto>(newcourse), 200);
+        }
+
+        public async Task<Response<NoContent>> UpdateAsync(CourseUpdateDto dto)
+        {
+            var updatecourse = _mapper.Map<Course>(dto);
+            var result = await _courseCollection.FindOneAndReplaceAsync(x => x.Id == dto.Id, updatecourse);
+
+            if(result == null)
+            {
+                return Response<NoContent>.Fail("course not founded", 404);
+            }
+            
+            return Response<NoContent>.Success(204);
+            
+        }
+        
+        public async Task<Response<NoContent>> DeleleteAsync(string id)
+        { 
+            var result = await _courseCollection.DeleteOneAsync(x => x.Id == id);
+            if(result.DeletedCount > 0)
+            {
+                return Response<NoContent>.Success(204);
+            }
+            else
+            {
+                return Response<NoContent>.Fail("course not found", 404);
+            }
+            
         }
     }
 }

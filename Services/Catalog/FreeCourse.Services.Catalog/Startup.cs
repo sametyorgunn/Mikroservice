@@ -32,6 +32,8 @@ namespace FreeCourse.Services.Catalog
             services.Configure<DatabaseSettings>(Configuration.GetSection("DatabaseSettings"));
 
             services.AddScoped<ICategoryService,CategoryService>();
+            services.AddScoped<ICourseService, CourseService>();
+
             services.AddSingleton<IDatabaseSettings>(sp =>
             {
                 return sp.GetRequiredService<IOptions<DatabaseSettings>>().Value;
