@@ -1,7 +1,13 @@
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
-* text=auto
+*js linguist-detectable=false
+*css linguist-detectable=false
+*Csharp linguist-detectable=true
+*C# linguist-detectable=true
+*html linguist-detectable=false
+*javascript linguist-detectable=false
+*typescript linguist-detectable=false
 
 ###############################################################################
 # Set default behavior for command prompt diff.
